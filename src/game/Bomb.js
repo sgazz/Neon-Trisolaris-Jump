@@ -4,12 +4,13 @@ export class Bomb {
     constructor(x, y, speed = 3, damage = 1) {
         this.mesh = null;
         this.position = new THREE.Vector3(x, y, 0);
-        this.velocity = new THREE.Vector3(0, -speed, 0);
+        this.velocity = new THREE.Vector3(0, speed, 0); // Move upward towards player
         this.size = { width: 0.4, height: 0.4 };
         this.damage = damage;
         this.speed = speed;
         this.life = 1;
         this.isDestroyed = false;
+        this.frameCount = 0; // For debug logging
         
         this.createMesh();
     }
@@ -95,6 +96,12 @@ export class Bomb {
         this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
         this.mesh.position.copy(this.position);
         
+        // Debug: Log bomb position every 60 frames
+        if (this.frameCount % 60 === 0) {
+            console.log(`💣 Bomb at y=${this.position.y.toFixed(1)}, velocity.y=${this.velocity.y.toFixed(1)}`);
+        }
+        this.frameCount = (this.frameCount || 0) + 1;
+        
         // Update sparkle animation
         if (this.sparkle) {
             this.sparkle.material.emissiveIntensity = 0.3 + Math.sin(Date.now() * 0.02) * 0.5;
@@ -108,9 +115,8 @@ export class Bomb {
         
 
         
-        // Check if bomb is out of bounds
-        if (this.position.y < -10) {
-
+        // Check if bomb is out of bounds (above screen)
+        if (this.position.y > 20) {
             this.destroy();
         }
     }

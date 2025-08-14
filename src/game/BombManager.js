@@ -8,7 +8,7 @@ export class BombManager {
         this.spawnInterval = 2.0; // Spawn bomb every 2 seconds
         this.minSpawnX = -8;
         this.maxSpawnX = 8;
-        this.spawnY = 12; // Spawn bombs above the screen
+        this.spawnY = -15; // Spawn bombs below the screen
         this.maxBombs = 5; // Maximum bombs on screen at once
         this.difficulty = 1.0;
     }
@@ -60,7 +60,7 @@ export class BombManager {
         const speed = 2 + Math.random() * 2 * this.difficulty;
         const bomb = new Bomb(x, this.spawnY, speed);
         
-
+        console.log(`💣 Bomb spawned at (${x.toFixed(1)}, ${this.spawnY}) with speed ${speed.toFixed(1)}`);
         
         this.bombs.push(bomb);
         scene.add(bomb.mesh);

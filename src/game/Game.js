@@ -3,6 +3,7 @@ import { Player } from './Player.js';
 import { Platform } from './Platform.js';
 import { PlatformManager } from './PlatformManager.js';
 import { BombManager } from './BombManager.js';
+import { EnemyManager } from './EnemyManager.js';
 import { InputManager } from '../input/InputManager.js';
 import { AudioManager } from '../audio/AudioManager.js';
 
@@ -14,6 +15,7 @@ export class Game {
         this.player = null;
         this.platformManager = null;
         this.bombManager = null;
+        this.enemyManager = null;
         this.inputManager = inputManager;
         this.audioManager = null;
         
@@ -36,6 +38,7 @@ export class Game {
         this.player = new Player();
         this.platformManager = new PlatformManager();
         this.bombManager = new BombManager();
+        this.enemyManager = new EnemyManager();
         this.audioManager = new AudioManager();
         
         this.scene.add(this.player.mesh);
@@ -139,6 +142,7 @@ export class Game {
         // Reset managers first
         this.platformManager.reset();
         this.bombManager.reset();
+        this.enemyManager.reset();
         
         // Reset player after platforms are created
         this.player.reset();
@@ -171,8 +175,12 @@ export class Game {
             // Update platforms
             this.platformManager.update(deltaTime, this.player);
             
-            // Update bombs
-            this.bombManager.update(deltaTime, this.player, this.scene);
+            // Update enemies or bombs (alternating)
+            if (this.enemyManager.isEnemyModeActive()) {
+                this.enemyManager.update(deltaTime, this.player, this.scene);
+            } else {
+                this.bombManager.update(deltaTime, this.player, this.scene);
+            }
             
             // Check collisions
             this.checkCollisions();
@@ -188,9 +196,21 @@ export class Game {
                 this.bombManager.increaseDifficulty();
             }
             
+            // Activate enemy mode at certain scores
+            if (this.score >= 500 && !this.enemyManager.isEnemyModeActive() && this.enemyManager.getEnemies().length === 0) {
+                this.enemyManager.activate();
+                console.log('🎯 Enemy mode activated at score 500!');
+            }
+            
+            // Increase enemy difficulty
+            if (this.enemyManager.isEnemyModeActive() && this.score > 0 && this.score % 2000 === 0) {
+                this.enemyManager.increaseDifficulty();
+            }
+            
             // Debug: Log player position every 60 frames (1 second)
             if (this.frameCount % 60 === 0) {
-                console.log(`🎮 Player at y=${this.player.mesh.position.y.toFixed(1)}, Camera at y=${this.camera.position.y.toFixed(1)}`);
+                const mode = this.enemyManager.isEnemyModeActive() ? '👾 ENEMY MODE' : '💣 BOMB MODE';
+                console.log(`🎮 Player at y=${this.player.mesh.position.y.toFixed(1)}, Camera at y=${this.camera.position.y.toFixed(1)} - ${mode}`);
             }
             this.frameCount = (this.frameCount || 0) + 1;
         }
