@@ -19,13 +19,22 @@ export class PlatformManager {
     createInitialPlatforms() {
         // Start with a few platforms
         for (let i = 0; i < 5; i++) {
-            const x = (Math.random() - 0.5) * 12;
+            let x;
+            if (i === 0) {
+                // First platform at x=0 for player to start on
+                x = 0;
+            } else {
+                // Other platforms at random positions
+                x = (Math.random() - 0.5) * 12;
+            }
             const y = i * 3;
             const type = this.getRandomPlatformType();
             const platform = new Platform(x, y, type);
             this.platforms.push(platform);
             this.highestPlatform = Math.max(this.highestPlatform, y);
+            console.log(`🏗️ Created platform ${i} at (${x.toFixed(1)}, ${y})`);
         }
+        console.log(`📊 Total platforms created: ${this.platforms.length}`);
     }
 
     getRandomPlatformType() {
@@ -122,6 +131,8 @@ export class PlatformManager {
                 this.scene.add(platform.mesh);
             });
         }
+        
+        console.log('🔄 PlatformManager reset complete');
     }
 
     // Method to adjust difficulty based on height

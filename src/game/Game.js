@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Player } from './Player.js';
 import { Platform } from './Platform.js';
 import { PlatformManager } from './PlatformManager.js';
+import { BombManager } from './BombManager.js';
 import { InputManager } from '../input/InputManager.js';
 import { AudioManager } from '../audio/AudioManager.js';
 
@@ -12,12 +13,16 @@ export class Game {
         this.renderer = null;
         this.player = null;
         this.platformManager = null;
+        this.bombManager = null;
         this.inputManager = inputManager;
         this.audioManager = null;
         
         this.score = 0;
         this.height = 0;
         this.gameOver = true; // Start with game over state until player clicks start
+        this.debugMode = true; // Enable debug mode for collision visualization
+        this.restartHandler = null; // Store restart handler reference
+        this.frameCount = 0; // For debug logging
         
         this.init();
     }
@@ -30,6 +35,7 @@ export class Game {
         
         this.player = new Player();
         this.platformManager = new PlatformManager();
+        this.bombManager = new BombManager();
         this.audioManager = new AudioManager();
         
         this.scene.add(this.player.mesh);
@@ -114,17 +120,32 @@ export class Game {
     }
 
     start() {
+        // Remove restart handler if exists
+        if (this.restartHandler) {
+            document.removeEventListener('keydown', this.restartHandler);
+            this.restartHandler = null;
+        }
+        
         this.gameOver = false;
         this.score = 0;
         this.height = 0;
-        this.player.reset();
+        this.frameCount = 0;
+        
+        // Reset managers first
         this.platformManager.reset();
+        this.bombManager.reset();
+        
+        // Reset player after platforms are created
+        this.player.reset();
+        
         this.updateUI();
         
         // Start background music
         if (this.audioManager) {
             this.audioManager.startBackgroundMusic();
         }
+        
+        console.log('🚀 Game started! Player positioned on platform');
     }
 
     update() {
@@ -134,10 +155,19 @@ export class Game {
             // Update player
             if (this.inputManager) {
                 this.player.update(deltaTime, this.inputManager);
+                
+                // Handle laser shooting
+                if (this.inputManager.isMousePressed()) {
+                    const mousePos = this.inputManager.getMousePosition();
+                    this.player.shootLaser(mousePos, this.scene);
+                }
             }
             
             // Update platforms
             this.platformManager.update(deltaTime, this.player);
+            
+            // Update bombs
+            this.bombManager.update(deltaTime, this.player, this.scene);
             
             // Check collisions
             this.checkCollisions();
@@ -147,6 +177,17 @@ export class Game {
             
             // Update score and height
             this.updateScore();
+            
+            // Increase difficulty over time
+            if (this.score > 0 && this.score % 1000 === 0) {
+                this.bombManager.increaseDifficulty();
+            }
+            
+            // Debug: Log player position every 60 frames (1 second)
+            if (this.frameCount % 60 === 0) {
+                console.log(`🎮 Player at y=${this.player.mesh.position.y.toFixed(1)}, Camera at y=${this.camera.position.y.toFixed(1)}`);
+            }
+            this.frameCount = (this.frameCount || 0) + 1;
         }
         
         // Always render (even when game is not running)
@@ -158,6 +199,11 @@ export class Game {
     checkCollisions() {
         const platforms = this.platformManager.getPlatforms();
         
+        // Debug: Log platform count every 60 frames
+        if (this.frameCount % 60 === 0) {
+            console.log(`🏗️ Checking collisions with ${platforms.length} platforms`);
+        }
+        
         for (let platform of platforms) {
             if (this.player.checkPlatformCollision(platform)) {
                 this.player.jump();
@@ -166,8 +212,9 @@ export class Game {
             }
         }
         
-        // Check if player fell off screen
-        if (this.player.mesh.position.y < this.camera.position.y - 10) {
+        // Check if player fell off screen (but give some grace period)
+        if (this.player.mesh.position.y < this.camera.position.y - 15) {
+            console.log(`💀 Player fell off screen - Game Over! Player at y=${this.player.mesh.position.y.toFixed(1)}, Camera at y=${this.camera.position.y.toFixed(1)}`);
             this.endGame();
         }
     }
@@ -176,6 +223,11 @@ export class Game {
         // Follow player with some lag for smooth movement
         const targetY = this.player.mesh.position.y;
         this.camera.position.y += (targetY - this.camera.position.y) * 0.1;
+        
+        // Ensure camera doesn't go below player
+        if (this.camera.position.y < this.player.mesh.position.y - 2) {
+            this.camera.position.y = this.player.mesh.position.y - 2;
+        }
     }
 
     updateScore() {
@@ -188,10 +240,31 @@ export class Game {
         this.scoreElement.textContent = `Score: ${this.score}`;
         this.heightElement.textContent = `Height: ${Math.floor(this.height)}m`;
     }
+    
+    addScore(points) {
+        this.score += points;
+        this.updateUI();
+    }
+    
+    gameOver() {
+        this.endGame();
+    }
 
     endGame() {
+        // Prevent multiple calls
+        if (this.gameOver) {
+            console.log('⚠️ Game already over, ignoring endGame call');
+            return;
+        }
+        
+        console.log('🏁 Ending game...');
         this.gameOver = true;
         this.gameOverElement.style.display = 'block';
+        
+        // Stop the game loop
+        if (window.gameInstance) {
+            window.gameInstance.stopGame();
+        }
         
         // Play game over sound
         if (this.audioManager) {
@@ -199,15 +272,27 @@ export class Game {
             this.audioManager.stopBackgroundMusic();
         }
         
+        // Remove previous restart handler if exists
+        if (this.restartHandler) {
+            document.removeEventListener('keydown', this.restartHandler);
+        }
+        
         // Listen for restart
-        const restartHandler = (event) => {
+        this.restartHandler = (event) => {
             if (event.code === 'Space') {
+                console.log('🔄 Restarting game...');
                 this.gameOverElement.style.display = 'none';
                 this.start();
-                document.removeEventListener('keydown', restartHandler);
+                document.removeEventListener('keydown', this.restartHandler);
+                this.restartHandler = null;
+                
+                // Restart the game loop
+                if (window.gameInstance) {
+                    window.gameInstance.startGame();
+                }
             }
         };
-        document.addEventListener('keydown', restartHandler);
+        document.addEventListener('keydown', this.restartHandler);
     }
 
     resize() {

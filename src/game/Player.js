@@ -14,6 +14,14 @@ export class Player {
         this.isOnGround = false;
         this.glowIntensity = 1;
         
+        // Laser system
+        this.lasers = [];
+        this.laserCooldown = 0;
+        this.laserCooldownTime = 0.2; // 200ms between shots
+        this.laserSpeed = 15;
+        this.laserDamage = 1;
+        this.frameCount = 0; // For debug logging
+        
         this.createMesh();
     }
 
@@ -56,10 +64,11 @@ export class Player {
         
         // Add glowing eye
         const eyeGeometry = new THREE.SphereGeometry(0.05, 8, 8);
-        const eyeMaterial = new THREE.MeshBasicMaterial({ 
+        const eyeMaterial = new THREE.MeshPhongMaterial({ 
             color: 0xff0066,
             emissive: 0xff0066,
-            emissiveIntensity: 0.5
+            emissiveIntensity: 0.5,
+            shininess: 100
         });
         const eye = new THREE.Mesh(eyeGeometry, eyeMaterial);
         eye.position.set(0, 0, 0.15);
@@ -83,12 +92,18 @@ export class Player {
         // Update glow effect
         this.updateGlow();
         
+        // Update lasers
+        this.updateLasers(deltaTime);
+        
         // Keep player in bounds (wrap around)
         if (this.position.x > 8) {
             this.position.x = -8;
         } else if (this.position.x < -8) {
             this.position.x = 8;
         }
+        
+        // Update frame count for debug
+        this.frameCount++;
     }
 
     updateGlow() {
@@ -169,6 +184,11 @@ export class Player {
         
         const platformBounds = platform.getBounds();
         
+        // Debug collision detection
+        if (this.frameCount % 60 === 0) {
+            console.log(`🔍 Checking collision: Player bottom=${playerBounds.bottom.toFixed(1)}, Platform top=${platformBounds.top.toFixed(1)}, velocity.y=${this.velocity.y.toFixed(1)}`);
+        }
+        
         // Check if player is falling and above platform
         if (this.velocity.y <= 0 && 
             playerBounds.bottom <= platformBounds.top &&
@@ -176,6 +196,7 @@ export class Player {
             playerBounds.left < platformBounds.right &&
             playerBounds.right > platformBounds.left) {
             
+            console.log(`✅ Platform collision detected! Player at y=${this.position.y.toFixed(1)}, Platform at y=${platformBounds.top.toFixed(1)}`);
             this.position.y = platformBounds.top + this.size.height / 2;
             this.velocity.y = 0;
             this.isOnGround = true;
@@ -186,9 +207,150 @@ export class Player {
     }
 
     reset() {
+        // Start player on the first platform (y = 0)
         this.position.set(0, 0, 0);
         this.velocity.set(0, 0, 0);
-        this.isOnGround = false;
+        this.isOnGround = true; // Start on ground
         this.mesh.position.copy(this.position);
+        
+        // Clear all lasers
+        this.lasers.forEach(laser => {
+            if (laser.mesh && laser.mesh.parent) {
+                laser.mesh.parent.remove(laser.mesh);
+            }
+        });
+        this.lasers = [];
+        
+        // Reset frame count
+        this.frameCount = 0;
+        
+        console.log(`🔄 Player reset complete - positioned at (${this.position.x}, ${this.position.y})`);
+    }
+    
+    // Laser system methods
+    shootLaser(mousePosition, scene) {
+        if (this.laserCooldown > 0) return;
+        
+        // Calculate direction from player to mouse
+        const direction = new THREE.Vector3(
+            mousePosition.x - this.position.x,
+            mousePosition.y - this.position.y,
+            0
+        ).normalize();
+        
+        // Create laser
+        const laser = this.createLaser(direction);
+        this.lasers.push(laser);
+        
+        // Add to scene
+        scene.add(laser.mesh);
+        
+        console.log('🔫 Laser fired! Total lasers:', this.lasers.length);
+        
+        // Set cooldown
+        this.laserCooldown = this.laserCooldownTime;
+        
+        // Play laser sound
+        if (window.gameInstance && window.gameInstance.game && window.gameInstance.game.audioManager) {
+            window.gameInstance.game.audioManager.playLaser();
+        }
+    }
+    
+    createLaser(direction) {
+        // Create laser geometry
+        const laserGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.5);
+        const laserMaterial = new THREE.MeshPhongMaterial({
+            color: 0xff0066,
+            emissive: 0xff0066,
+            emissiveIntensity: 0.8,
+            transparent: true,
+            opacity: 0.9,
+            shininess: 100
+        });
+        
+        const laserMesh = new THREE.Mesh(laserGeometry, laserMaterial);
+        
+        // Position laser at player's tail (back)
+        laserMesh.position.copy(this.position);
+        laserMesh.position.x -= direction.x * 0.3;
+        laserMesh.position.y -= direction.y * 0.3;
+        
+        // Rotate laser to point in direction
+        laserMesh.lookAt(
+            laserMesh.position.clone().add(direction.clone().multiplyScalar(10))
+        );
+        
+        // Add glow effect
+        const glowGeometry = new THREE.CylinderGeometry(0.04, 0.04, 0.6);
+        const glowMaterial = new THREE.MeshBasicMaterial({
+            color: 0xff0066,
+            transparent: true,
+            opacity: 0.3
+        });
+        
+        const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
+        laserMesh.add(glowMesh);
+        
+        return {
+            mesh: laserMesh,
+            direction: direction,
+            speed: this.laserSpeed,
+            damage: this.laserDamage,
+            life: 2.0, // Laser disappears after 2 seconds
+            getBounds: () => ({
+                left: laserMesh.position.x - 0.1,
+                right: laserMesh.position.x + 0.1,
+                bottom: laserMesh.position.y - 0.1,
+                top: laserMesh.position.y + 0.1
+            })
+        };
+    }
+    
+    updateLasers(deltaTime) {
+        // Update cooldown
+        if (this.laserCooldown > 0) {
+            this.laserCooldown -= deltaTime;
+        }
+        
+        // Update existing lasers
+        for (let i = this.lasers.length - 1; i >= 0; i--) {
+            const laser = this.lasers[i];
+            
+            // Move laser
+            laser.mesh.position.add(
+                laser.direction.clone().multiplyScalar(laser.speed * deltaTime)
+            );
+            
+            // Reduce life
+            laser.life -= deltaTime;
+            
+
+            
+            // Remove laser if it's out of bounds or expired
+            if (laser.life <= 0 || 
+                Math.abs(laser.mesh.position.x) > 15 || 
+                Math.abs(laser.mesh.position.y) > 15) {
+                
+
+                
+                if (laser.mesh.parent) {
+                    laser.mesh.parent.remove(laser.mesh);
+                }
+                this.lasers.splice(i, 1);
+            }
+        }
+    }
+    
+    getLasers() {
+        return this.lasers;
+    }
+    
+    getBounds() {
+        return {
+            left: this.position.x - this.size.width / 2,
+            right: this.position.x + this.size.width / 2,
+            bottom: this.position.y - this.size.height / 2,
+            top: this.position.y + this.size.height / 2
+        };
     }
 }

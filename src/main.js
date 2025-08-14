@@ -16,8 +16,7 @@ class TrisolarisJump {
         this.inputManager = new InputManager();
         
         // Initialize game
-        this.game = new Game();
-        this.game.inputManager = this.inputManager;
+        this.game = new Game(this.inputManager);
         
         // Setup event listeners
         this.setupEventListeners();
@@ -102,6 +101,8 @@ class TrisolarisJump {
         if (this.game && this.game.audioManager) {
             this.game.audioManager.resumeAudioContext();
         }
+        
+        console.log('🎮 Game started from main.js');
     }
 
     gameLoop() {
@@ -111,9 +112,14 @@ class TrisolarisJump {
         
         requestAnimationFrame(() => this.gameLoop());
     }
+    
+    stopGame() {
+        this.isGameRunning = false;
+        console.log('⏹️ Game stopped from main.js');
+    }
 }
 
 // Start the game when the page loads
 window.addEventListener('load', () => {
-    new TrisolarisJump();
+    window.gameInstance = new TrisolarisJump();
 });

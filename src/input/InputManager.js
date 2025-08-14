@@ -1,6 +1,8 @@
 export class InputManager {
     constructor() {
         this.keys = {};
+        this.mousePosition = { x: 0, y: 0 };
+        this.mousePressed = false;
         console.log('InputManager constructor called');
         this.setupEventListeners();
         console.log('InputManager setup complete');
@@ -52,6 +54,36 @@ export class InputManager {
             this.keys['ArrowRight'] = false;
         });
         
+        // Mouse controls
+        document.addEventListener('mousemove', (event) => {
+            // Get canvas element
+            const canvas = document.getElementById('gameCanvas');
+            if (!canvas) return;
+            
+            // Convert screen coordinates to world coordinates
+            const rect = canvas.getBoundingClientRect();
+            const x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            // Convert to world coordinates (assuming camera is at z=10)
+            this.mousePosition.x = x * 10;
+            this.mousePosition.y = y * 5;
+            
+
+        });
+        
+        document.addEventListener('mousedown', (event) => {
+            if (event.button === 0) { // Left click
+                this.mousePressed = true;
+            }
+        });
+        
+        document.addEventListener('mouseup', (event) => {
+            if (event.button === 0) { // Left click
+                this.mousePressed = false;
+            }
+        });
+        
         console.log('Input event listeners setup complete');
     }
 
@@ -72,5 +104,13 @@ export class InputManager {
 
     isJumpPressed() {
         return this.isKeyPressed('Space') || this.isKeyPressed('ArrowUp') || this.isKeyPressed('KeyW');
+    }
+    
+    getMousePosition() {
+        return this.mousePosition;
+    }
+    
+    isMousePressed() {
+        return this.mousePressed;
     }
 }

@@ -29,7 +29,9 @@
             height: 100%;
         }
 
-        /* CRT Monitor Effect */
+        /* Enhanced CRT Monitor Effects */
+        
+        /* Primary scanlines - thin lines */
         #gameContainer::before {
             content: '';
             position: absolute;
@@ -39,16 +41,36 @@
             bottom: 0;
             background: 
                 linear-gradient(
-                    rgba(18, 16, 16, 0) 50%, 
+                    transparent 50%, 
+                    rgba(0, 0, 0, 0.5) 50%
+                );
+            background-size: 100% 3px;
+            z-index: 3;
+            pointer-events: none;
+            animation: scanline 6s linear infinite;
+        }
+        
+        /* Secondary scanlines - thicker lines */
+        #gameContainer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(
+                    transparent 50%, 
                     rgba(0, 0, 0, 0.25) 50%
                 );
-            background-size: 100% 4px;
+            background-size: 100% 6px;
             z-index: 2;
             pointer-events: none;
-            animation: scanline 10s linear infinite;
+            animation: scanline 10s linear infinite reverse;
         }
-
-        #gameContainer::after {
+        
+        /* Vignette effect */
+        #gameContainer .crt-vignette {
             content: '';
             position: absolute;
             top: 0;
@@ -57,17 +79,598 @@
             bottom: 0;
             background: radial-gradient(
                 ellipse at center,
-                rgba(0, 150, 136, 0) 0%,
-                rgba(0, 150, 136, 0.1) 40%,
-                rgba(0, 150, 136, 0.2) 100%
+                transparent 0%,
+                transparent 40%,
+                rgba(0, 0, 0, 0.3) 70%,
+                rgba(0, 0, 0, 0.6) 100%
             );
-            z-index: 1;
+            z-index: 4;
             pointer-events: none;
         }
-
+        
+        /* Screen curvature effect */
+        #gameContainer .crt-curvature {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(
+                ellipse at center,
+                transparent 0%,
+                transparent 60%,
+                rgba(0, 0, 0, 0.1) 80%,
+                rgba(0, 0, 0, 0.3) 100%
+            );
+            border-radius: 20% / 10%;
+            z-index: 5;
+            pointer-events: none;
+        }
+        
+        /* Phosphor glow effect */
+        #gameContainer .crt-glow {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(
+                    ellipse at center,
+                    rgba(0, 255, 136, 0.05) 0%,
+                    transparent 50%
+                ),
+                radial-gradient(
+                    ellipse at center,
+                    rgba(0, 255, 136, 0.03) 0%,
+                    transparent 70%
+                );
+            z-index: 1;
+            pointer-events: none;
+            animation: phosphor 3s ease-in-out infinite alternate;
+        }
+        
+        /* Flicker effect */
+        #gameContainer .crt-flicker {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.2);
+            z-index: 6;
+            pointer-events: none;
+            animation: flicker 0.1s infinite;
+        }
+        
+        /* RGB Split effect - simulates color misalignment */
+        #gameContainer .crt-rgb-split {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(90deg, 
+                    rgba(255, 0, 0, 0.1) 0%, 
+                    transparent 1px, 
+                    transparent 99%, 
+                    rgba(255, 0, 0, 0.1) 100%
+                ),
+                linear-gradient(90deg, 
+                    rgba(0, 255, 0, 0.1) 0%, 
+                    transparent 1px, 
+                    transparent 99%, 
+                    rgba(0, 255, 0, 0.1) 100%
+                ),
+                linear-gradient(90deg, 
+                    rgba(0, 0, 255, 0.1) 0%, 
+                    transparent 1px, 
+                    transparent 99%, 
+                    rgba(0, 0, 255, 0.1) 100%
+                );
+            z-index: 7;
+            pointer-events: none;
+            animation: rgbSplit 4s ease-in-out infinite;
+        }
+        
+        /* Screen burn effect - simulates CRT screen burn-in */
+        #gameContainer .crt-burn {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(
+                    circle at 20% 30%,
+                    rgba(0, 255, 136, 0.02) 0%,
+                    transparent 50%
+                ),
+                radial-gradient(
+                    circle at 80% 70%,
+                    rgba(0, 255, 136, 0.015) 0%,
+                    transparent 40%
+                ),
+                radial-gradient(
+                    circle at 50% 50%,
+                    rgba(0, 255, 136, 0.01) 0%,
+                    transparent 60%
+                );
+            z-index: 8;
+            pointer-events: none;
+            animation: burn 10s ease-in-out infinite;
+        }
+        
+        /* Static noise effect - very visible CRT artifact */
+        #gameContainer .crt-static {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(0, 255, 136, 0.1) 0%, transparent 1px),
+                radial-gradient(circle at 75% 75%, rgba(0, 255, 136, 0.08) 0%, transparent 1px),
+                radial-gradient(circle at 50% 10%, rgba(0, 255, 136, 0.06) 0%, transparent 1px),
+                radial-gradient(circle at 10% 60%, rgba(0, 255, 136, 0.07) 0%, transparent 1px),
+                radial-gradient(circle at 90% 40%, rgba(0, 255, 136, 0.05) 0%, transparent 1px);
+            background-size: 50px 50px, 30px 30px, 40px 40px, 35px 35px, 45px 45px;
+            z-index: 9;
+            pointer-events: none;
+            animation: static 0.5s infinite;
+        }
+        
+        /* Screen distortion effect - simulates CRT geometry issues */
+        #gameContainer .crt-distortion {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(45deg, 
+                    transparent 0%, 
+                    rgba(0, 255, 136, 0.05) 25%, 
+                    transparent 50%, 
+                    rgba(0, 255, 136, 0.03) 75%, 
+                    transparent 100%
+                );
+            z-index: 10;
+            pointer-events: none;
+            animation: distortion 3s ease-in-out infinite;
+        }
+        
+        /* Power on/off effect - dramatic CRT startup/shutdown */
+        #gameContainer .crt-power {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(
+                    to bottom,
+                    rgba(0, 255, 136, 0.3) 0%,
+                    rgba(0, 255, 136, 0.1) 20%,
+                    transparent 40%,
+                    transparent 60%,
+                    rgba(0, 255, 136, 0.1) 80%,
+                    rgba(0, 255, 136, 0.3) 100%
+                );
+            z-index: 11;
+            pointer-events: none;
+            animation: power 5s ease-in-out infinite;
+        }
+        
+        /* Horizontal sync effect - very visible CRT artifact */
+        #gameContainer .crt-sync {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                repeating-linear-gradient(
+                    90deg,
+                    transparent 0px,
+                    transparent 98px,
+                    rgba(0, 255, 136, 0.15) 98px,
+                    rgba(0, 255, 136, 0.15) 100px
+                );
+            z-index: 12;
+            pointer-events: none;
+            animation: sync 2s linear infinite;
+        }
+        
+        /* Color bleeding effect - very visible CRT artifact */
+        #gameContainer .crt-bleed {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(
+                    90deg,
+                    rgba(0, 255, 136, 0.1) 0%,
+                    transparent 20%,
+                    transparent 80%,
+                    rgba(0, 255, 136, 0.1) 100%
+                );
+            z-index: 13;
+            pointer-events: none;
+            animation: bleed 4s ease-in-out infinite;
+        }
+        
+        /* Screen tearing effect - very visible CRT artifact */
+        #gameContainer .crt-tear {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    transparent 0px,
+                    transparent 95px,
+                    rgba(0, 255, 136, 0.2) 95px,
+                    rgba(0, 255, 136, 0.2) 100px
+                );
+            z-index: 14;
+            pointer-events: none;
+            animation: tear 3s linear infinite;
+        }
+        
+        /* Interference effect - very visible CRT artifact */
+        #gameContainer .crt-interference {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(
+                    circle at 30% 20%,
+                    rgba(0, 255, 136, 0.1) 0%,
+                    transparent 2px
+                ),
+                radial-gradient(
+                    circle at 70% 80%,
+                    rgba(0, 255, 136, 0.08) 0%,
+                    transparent 2px
+                ),
+                radial-gradient(
+                    circle at 50% 50%,
+                    rgba(0, 255, 136, 0.06) 0%,
+                    transparent 2px
+                );
+            background-size: 20px 20px, 15px 15px, 25px 25px;
+            z-index: 15;
+            pointer-events: none;
+            animation: interference 0.3s infinite;
+        }
+        
+        /* Ghosting effect - very visible CRT artifact */
+        #gameContainer .crt-ghost {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(
+                    90deg,
+                    transparent 0%,
+                    rgba(0, 255, 136, 0.05) 10%,
+                    transparent 20%,
+                    rgba(0, 255, 136, 0.03) 30%,
+                    transparent 40%,
+                    rgba(0, 255, 136, 0.04) 50%,
+                    transparent 60%,
+                    rgba(0, 255, 136, 0.02) 70%,
+                    transparent 80%,
+                    rgba(0, 255, 136, 0.06) 90%,
+                    transparent 100%
+                );
+            z-index: 16;
+            pointer-events: none;
+            animation: ghost 6s ease-in-out infinite;
+        }
+        
+        /* Overscan effect - very visible CRT artifact */
+        #gameContainer .crt-overscan {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: 
+                linear-gradient(
+                    to bottom,
+                    rgba(0, 255, 136, 0.1) 0%,
+                    transparent 5%,
+                    transparent 95%,
+                    rgba(0, 255, 136, 0.1) 100%
+                ),
+                linear-gradient(
+                    to right,
+                    rgba(0, 255, 136, 0.1) 0%,
+                    transparent 5%,
+                    transparent 95%,
+                    rgba(0, 255, 136, 0.1) 100%
+                );
+            z-index: 17;
+            pointer-events: none;
+            animation: overscan 8s ease-in-out infinite;
+        }
+        
+        /* Convergence effect - very visible CRT artifact */
+        #gameContainer .crt-convergence {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(
+                    circle at 25% 25%,
+                    rgba(255, 0, 0, 0.1) 0%,
+                    transparent 50%
+                ),
+                radial-gradient(
+                    circle at 75% 75%,
+                    rgba(0, 255, 0, 0.1) 0%,
+                    transparent 50%
+                ),
+                radial-gradient(
+                    circle at 50% 50%,
+                    rgba(0, 0, 255, 0.1) 0%,
+                    transparent 50%
+                );
+            z-index: 18;
+            pointer-events: none;
+            animation: convergence 7s ease-in-out infinite;
+        }
+        
+        /* Scanline animations */
         @keyframes scanline {
             0% { transform: translateY(0); }
             100% { transform: translateY(100vh); }
+        }
+        
+        @keyframes phosphor {
+            0% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+        
+        @keyframes flicker {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+        
+        @keyframes rgbSplit {
+            0%, 100% { 
+                transform: translateX(0px) translateY(0px);
+                opacity: 0.3;
+            }
+            25% { 
+                transform: translateX(1px) translateY(-1px);
+                opacity: 0.5;
+            }
+            50% { 
+                transform: translateX(-1px) translateY(1px);
+                opacity: 0.4;
+            }
+            75% { 
+                transform: translateX(0.5px) translateY(0.5px);
+                opacity: 0.6;
+            }
+        }
+        
+        @keyframes burn {
+            0%, 100% { 
+                opacity: 0.3;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.6;
+                transform: scale(1.05);
+            }
+        }
+        
+        @keyframes static {
+            0%, 100% { 
+                opacity: 0.3;
+                transform: translateX(0px) translateY(0px);
+            }
+            25% { 
+                opacity: 0.6;
+                transform: translateX(1px) translateY(-1px);
+            }
+            50% { 
+                opacity: 0.4;
+                transform: translateX(-1px) translateY(1px);
+            }
+            75% { 
+                opacity: 0.7;
+                transform: translateX(0.5px) translateY(-0.5px);
+            }
+        }
+        
+        @keyframes distortion {
+            0%, 100% { 
+                opacity: 0.2;
+                transform: skewX(0deg) skewY(0deg);
+            }
+            25% { 
+                opacity: 0.4;
+                transform: skewX(0.5deg) skewY(-0.3deg);
+            }
+            50% { 
+                opacity: 0.3;
+                transform: skewX(-0.3deg) skewY(0.5deg);
+            }
+            75% { 
+                opacity: 0.5;
+                transform: skewX(0.2deg) skewY(-0.2deg);
+            }
+        }
+        
+        @keyframes power {
+            0%, 100% { 
+                opacity: 0;
+                transform: scaleY(0.8);
+            }
+            20% { 
+                opacity: 0.8;
+                transform: scaleY(1.1);
+            }
+            40% { 
+                opacity: 0.3;
+                transform: scaleY(0.9);
+            }
+            60% { 
+                opacity: 0.6;
+                transform: scaleY(1.05);
+            }
+            80% { 
+                opacity: 0.2;
+                transform: scaleY(0.95);
+            }
+        }
+        
+        @keyframes sync {
+            0% { 
+                transform: translateX(0px);
+                opacity: 0.3;
+            }
+            50% { 
+                transform: translateX(50px);
+                opacity: 0.6;
+            }
+            100% { 
+                transform: translateX(100px);
+                opacity: 0.3;
+            }
+        }
+        
+        @keyframes bleed {
+            0%, 100% { 
+                opacity: 0.2;
+                transform: translateX(0px);
+            }
+            25% { 
+                opacity: 0.5;
+                transform: translateX(2px);
+            }
+            50% { 
+                opacity: 0.3;
+                transform: translateX(-1px);
+            }
+            75% { 
+                opacity: 0.6;
+                transform: translateX(1px);
+            }
+        }
+        
+        @keyframes tear {
+            0% { 
+                transform: translateY(0px);
+                opacity: 0.3;
+            }
+            50% { 
+                transform: translateY(10px);
+                opacity: 0.6;
+            }
+            100% { 
+                transform: translateY(0px);
+                opacity: 0.3;
+            }
+        }
+        
+        @keyframes interference {
+            0%, 100% { 
+                opacity: 0.2;
+                transform: translateX(0px) translateY(0px);
+            }
+            25% { 
+                opacity: 0.5;
+                transform: translateX(1px) translateY(-1px);
+            }
+            50% { 
+                opacity: 0.3;
+                transform: translateX(-1px) translateY(1px);
+            }
+            75% { 
+                opacity: 0.6;
+                transform: translateX(0.5px) translateY(-0.5px);
+            }
+        }
+        
+        @keyframes ghost {
+            0%, 100% { 
+                opacity: 0.2;
+                transform: translateX(0px);
+            }
+            25% { 
+                opacity: 0.4;
+                transform: translateX(3px);
+            }
+            50% { 
+                opacity: 0.3;
+                transform: translateX(-2px);
+            }
+            75% { 
+                opacity: 0.5;
+                transform: translateX(1px);
+            }
+        }
+        
+        @keyframes overscan {
+            0%, 100% { 
+                opacity: 0.3;
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.6;
+                transform: scale(1.02);
+            }
+        }
+        
+        @keyframes convergence {
+            0%, 100% { 
+                opacity: 0.2;
+                transform: translateX(0px) translateY(0px);
+            }
+            25% { 
+                opacity: 0.4;
+                transform: translateX(2px) translateY(-1px);
+            }
+            50% { 
+                opacity: 0.3;
+                transform: translateX(-1px) translateY(2px);
+            }
+            75% { 
+                opacity: 0.5;
+                transform: translateX(1px) translateY(-2px);
+            }
         }
 
         /* UI Elements */
@@ -197,6 +800,24 @@
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         
+        <!-- Enhanced CRT Effects -->
+        <div class="crt-glow"></div>
+        <div class="crt-vignette"></div>
+        <div class="crt-curvature"></div>
+        <div class="crt-flicker"></div>
+        <div class="crt-rgb-split"></div>
+        <div class="crt-burn"></div>
+        <div class="crt-static"></div>
+        <div class="crt-distortion"></div>
+        <div class="crt-power"></div>
+        <div class="crt-sync"></div>
+        <div class="crt-bleed"></div>
+        <div class="crt-tear"></div>
+        <div class="crt-interference"></div>
+        <div class="crt-ghost"></div>
+        <div class="crt-overscan"></div>
+        <div class="crt-convergence"></div>
+        
         <div id="ui">
             <div id="score">Score: 0</div>
             <div id="height">Height: 0m</div>
@@ -210,6 +831,7 @@
             <h1>TRISOLARIS JUMP</h1>
             <p>Navigate the cosmic platforms</p>
             <p>Use A/D or ←/→ to move</p>
+            <p>Left click to shoot lasers at bombs</p>
             <button id="startButton">START GAME</button>
         </div>
 
