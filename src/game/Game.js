@@ -117,6 +117,11 @@ export class Game {
         this.scoreElement = document.getElementById('score');
         this.heightElement = document.getElementById('height');
         this.gameOverElement = document.getElementById('gameOver');
+        
+        console.log('🎮 UI elements setup:');
+        console.log(`  - Score element: ${this.scoreElement ? 'found' : 'NOT FOUND'}`);
+        console.log(`  - Height element: ${this.heightElement ? 'found' : 'NOT FOUND'}`);
+        console.log(`  - Game over element: ${this.gameOverElement ? 'found' : 'NOT FOUND'}`);
     }
 
     start() {
@@ -259,7 +264,9 @@ export class Game {
         
         console.log('🏁 Ending game...');
         this.gameOver = true;
+        console.log(`📺 Setting game over element display to 'block'`);
         this.gameOverElement.style.display = 'block';
+        console.log(`📺 Game over element display is now: ${this.gameOverElement.style.display}`);
         
         // Stop the game loop
         if (window.gameInstance) {
@@ -279,9 +286,12 @@ export class Game {
         
         // Listen for restart
         this.restartHandler = (event) => {
+            console.log(`🎯 Restart handler called with key: ${event.code}`);
             if (event.code === 'Space') {
                 console.log('🔄 Restarting game...');
+                console.log(`📺 Game over element display before: ${this.gameOverElement.style.display}`);
                 this.gameOverElement.style.display = 'none';
+                console.log(`📺 Game over element display after: ${this.gameOverElement.style.display}`);
                 this.start();
                 document.removeEventListener('keydown', this.restartHandler);
                 this.restartHandler = null;
@@ -293,6 +303,7 @@ export class Game {
             }
         };
         document.addEventListener('keydown', this.restartHandler);
+        console.log('👂 Restart handler attached to keydown event');
     }
 
     resize() {

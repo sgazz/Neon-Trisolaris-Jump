@@ -52,7 +52,8 @@ class TrisolarisJump {
 
         // Keyboard controls
         document.addEventListener('keydown', (event) => {
-            if (event.code === 'Space' && !this.isGameRunning) {
+            // Only handle Space for initial game start, not for restart
+            if (event.code === 'Space' && !this.isGameRunning && !this.game.gameOver) {
                 this.startGame();
                 startScreen.style.display = 'none';
             }

@@ -257,15 +257,15 @@ export class Player {
     }
     
     createLaser(direction) {
-        // Create laser geometry
-        const laserGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.5);
+        // Create laser geometry - make it thicker and longer
+        const laserGeometry = new THREE.CylinderGeometry(0.03, 0.03, 0.8);
         const laserMaterial = new THREE.MeshPhongMaterial({
-            color: 0xff0066,
-            emissive: 0xff0066,
-            emissiveIntensity: 0.8,
+            color: 0xffffff, // Pure white
+            emissive: 0xffffff, // White glow
+            emissiveIntensity: 1.0, // Full intensity
             transparent: true,
-            opacity: 0.9,
-            shininess: 100
+            opacity: 1.0, // Fully opaque
+            shininess: 200 // Very shiny
         });
         
         const laserMesh = new THREE.Mesh(laserGeometry, laserMaterial);
@@ -280,16 +280,39 @@ export class Player {
             laserMesh.position.clone().add(direction.clone().multiplyScalar(10))
         );
         
-        // Add glow effect
-        const glowGeometry = new THREE.CylinderGeometry(0.04, 0.04, 0.6);
+        // Add bright white glow effect
+        const glowGeometry = new THREE.CylinderGeometry(0.06, 0.06, 1.0);
         const glowMaterial = new THREE.MeshBasicMaterial({
-            color: 0xff0066,
+            color: 0xffffff, // White glow
             transparent: true,
-            opacity: 0.3
+            opacity: 0.6 // More visible
         });
         
         const glowMesh = new THREE.Mesh(glowGeometry, glowMaterial);
         laserMesh.add(glowMesh);
+        
+        // Add outer glow for extra visibility
+        const outerGlowGeometry = new THREE.CylinderGeometry(0.1, 0.1, 1.2);
+        const outerGlowMaterial = new THREE.MeshBasicMaterial({
+            color: 0x00ffff, // Cyan outer glow
+            transparent: true,
+            opacity: 0.3
+        });
+        
+        const outerGlowMesh = new THREE.Mesh(outerGlowGeometry, outerGlowMaterial);
+        laserMesh.add(outerGlowMesh);
+        
+        // Add trail effect
+        const trailGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.3);
+        const trailMaterial = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.4
+        });
+        
+        const trailMesh = new THREE.Mesh(trailGeometry, trailMaterial);
+        trailMesh.position.z = -0.1; // Slightly behind the main laser
+        laserMesh.add(trailMesh);
         
         return {
             mesh: laserMesh,
@@ -297,6 +320,9 @@ export class Player {
             speed: this.laserSpeed,
             damage: this.laserDamage,
             life: 2.0, // Laser disappears after 2 seconds
+            glowMesh: glowMesh,
+            outerGlowMesh: outerGlowMesh,
+            trailMesh: trailMesh,
             getBounds: () => ({
                 left: laserMesh.position.x - 0.1,
                 right: laserMesh.position.x + 0.1,
@@ -321,17 +347,30 @@ export class Player {
                 laser.direction.clone().multiplyScalar(laser.speed * deltaTime)
             );
             
+            // Animate glow effects
+            if (laser.glowMesh && laser.outerGlowMesh) {
+                const pulse = Math.sin(Date.now() * 0.02) * 0.2 + 0.8; // Pulsing effect
+                laser.glowMesh.material.opacity = 0.6 * pulse;
+                laser.outerGlowMesh.material.opacity = 0.3 * pulse;
+                
+                // Rotate glow effects for dynamic look
+                laser.glowMesh.rotation.z += deltaTime * 2;
+                laser.outerGlowMesh.rotation.z -= deltaTime * 1.5;
+            }
+            
+            // Animate trail effect
+            if (laser.trailMesh) {
+                const trailPulse = Math.sin(Date.now() * 0.03) * 0.1 + 0.4;
+                laser.trailMesh.material.opacity = trailPulse;
+            }
+            
             // Reduce life
             laser.life -= deltaTime;
-            
-
             
             // Remove laser if it's out of bounds or expired
             if (laser.life <= 0 || 
                 Math.abs(laser.mesh.position.x) > 15 || 
                 Math.abs(laser.mesh.position.y) > 15) {
-                
-
                 
                 if (laser.mesh.parent) {
                     laser.mesh.parent.remove(laser.mesh);
