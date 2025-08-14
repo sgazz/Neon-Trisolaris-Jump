@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trisolaris Jump</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+        }
+
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #gameCanvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* CRT Monitor Effect */
+        #gameContainer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                linear-gradient(
+                    rgba(18, 16, 16, 0) 50%, 
+                    rgba(0, 0, 0, 0.25) 50%
+                );
+            background-size: 100% 4px;
+            z-index: 2;
+            pointer-events: none;
+            animation: scanline 10s linear infinite;
+        }
+
+        #gameContainer::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(
+                ellipse at center,
+                rgba(0, 150, 136, 0) 0%,
+                rgba(0, 150, 136, 0.1) 40%,
+                rgba(0, 150, 136, 0.2) 100%
+            );
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100vh); }
+        }
+
+        /* UI Elements */
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            color: #00ff88;
+            text-shadow: 0 0 10px #00ff88;
+            font-size: 18px;
+        }
+
+        #score {
+            margin-bottom: 10px;
+        }
+
+        #audioControls {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #muteButton {
+            background: transparent;
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        #muteButton:hover {
+            background: #00ff88;
+            color: #000;
+        }
+
+        #volumeSlider {
+            width: 80px;
+            height: 4px;
+            background: #333;
+            outline: none;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+
+        #volumeSlider::-webkit-slider-thumb {
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            background: #00ff88;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        #volumeSlider::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            background: #00ff88;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff0066;
+            text-shadow: 0 0 20px #ff0066;
+            font-size: 48px;
+            text-align: center;
+            z-index: 10;
+            display: none;
+        }
+
+        #startScreen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00ff88;
+            text-shadow: 0 0 15px #00ff88;
+            text-align: center;
+            z-index: 10;
+        }
+
+        #startScreen h1 {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        #startScreen p {
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+
+        #startButton {
+            background: transparent;
+            border: 2px solid #00ff88;
+            color: #00ff88;
+            padding: 15px 30px;
+            font-size: 20px;
+            cursor: pointer;
+            text-shadow: 0 0 10px #00ff88;
+            transition: all 0.3s ease;
+        }
+
+        #startButton:hover {
+            background: #00ff88;
+            color: #000;
+            box-shadow: 0 0 20px #00ff88;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 15px #00ff88; }
+            to { text-shadow: 0 0 25px #00ff88, 0 0 35px #00ff88; }
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="ui">
+            <div id="score">Score: 0</div>
+            <div id="height">Height: 0m</div>
+            <div id="audioControls">
+                <button id="muteButton">🔊</button>
+                <input type="range" id="volumeSlider" min="0" max="100" value="70">
+            </div>
+        </div>
+
+        <div id="startScreen">
+            <h1>TRISOLARIS JUMP</h1>
+            <p>Navigate the cosmic platforms</p>
+            <p>Use A/D or ←/→ to move</p>
+            <button id="startButton">START GAME</button>
+        </div>
+
+        <div id="gameOver">
+            <h2>GAME OVER</h2>
+            <p>Press SPACE to restart</p>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
