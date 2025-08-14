@@ -25,6 +25,7 @@ export class Game {
         this.debugMode = true; // Enable debug mode for collision visualization
         this.restartHandler = null; // Store restart handler reference
         this.frameCount = 0; // For debug logging
+        this.lastModeSwitchScore = 0; // Track last mode switch to prevent rapid switching
         
         this.init();
     }
@@ -146,6 +147,7 @@ export class Game {
         
         // Reset player after platforms are created
         this.player.reset();
+        this.lastModeSwitchScore = 0; // Reset mode switch tracking
         
         this.updateUI();
         
@@ -177,8 +179,20 @@ export class Game {
             
             // Update enemies or bombs (alternating)
             if (this.enemyManager.isEnemyModeActive()) {
+                // Debug: Log enemy mode status every 60 frames
+                if (this.frameCount % 60 === 0) {
+                    console.log(`👾 ENEMY MODE - Updating enemy manager`);
+                }
                 this.enemyManager.update(deltaTime, this.player, this.scene);
             } else {
+                // Debug: Log bomb mode status every 60 frames
+                if (this.frameCount % 60 === 0) {
+                    console.log(`💣 BOMB MODE - Updating bomb manager`);
+                }
+                // Debug: Log bomb mode status
+                if (this.frameCount % 120 === 0) { // Every 2 seconds
+                    console.log(`💣 BOMB MODE ACTIVE - Spawn timer: ${this.bombManager.spawnTimer.toFixed(1)}s, Interval: ${this.bombManager.spawnInterval.toFixed(1)}s, Bombs: ${this.bombManager.getBombs().length}/${this.bombManager.maxBombs}`);
+                }
                 this.bombManager.update(deltaTime, this.player, this.scene);
             }
             
@@ -196,10 +210,33 @@ export class Game {
                 this.bombManager.increaseDifficulty();
             }
             
-            // Activate enemy mode at certain scores
-            if (this.score >= 500 && !this.enemyManager.isEnemyModeActive() && this.enemyManager.getEnemies().length === 0) {
-                this.enemyManager.activate();
-                console.log('🎯 Enemy mode activated at score 500!');
+            // Alternating game modes based on score
+            const currentMode = this.enemyManager.isEnemyModeActive() ? 'enemy' : 'bomb';
+            const shouldSwitchMode = this.score > 0 && this.score % 1000 === 0 && this.score !== this.lastModeSwitchScore; // Switch every 1000 points
+            
+            // Debug: Log mode status every 30 frames
+            if (this.frameCount % 30 === 0) {
+                console.log(`🎮 MODE DEBUG - Current: ${currentMode.toUpperCase()}, Score: ${this.score}, Last switch: ${this.lastModeSwitchScore}, Should switch: ${shouldSwitchMode}`);
+            }
+            
+            if (shouldSwitchMode) {
+                if (currentMode === 'bomb' && this.score >= 500) {
+                    // Switch to enemy mode
+                    this.enemyManager.activate();
+                    this.lastModeSwitchScore = this.score;
+                    console.log(`🎯 Switching to ENEMY MODE at score ${this.score}!`);
+                } else if (currentMode === 'enemy') {
+                    // Switch back to bomb mode
+                    this.enemyManager.deactivate();
+                    this.lastModeSwitchScore = this.score;
+                    console.log(`💣 Switching back to BOMB MODE at score ${this.score}!`);
+                }
+            }
+            
+            // Emergency fallback: if enemy mode has no enemies for too long, switch back
+            if (this.enemyManager.isEnemyModeActive() && this.enemyManager.getEnemies().length === 0 && this.enemyManager.spawnTimer > 15) {
+                console.log('🔄 Emergency: No enemies spawning, switching back to bomb mode');
+                this.enemyManager.deactivate();
             }
             
             // Increase enemy difficulty
@@ -210,7 +247,12 @@ export class Game {
             // Debug: Log player position every 60 frames (1 second)
             if (this.frameCount % 60 === 0) {
                 const mode = this.enemyManager.isEnemyModeActive() ? '👾 ENEMY MODE' : '💣 BOMB MODE';
-                console.log(`🎮 Player at y=${this.player.mesh.position.y.toFixed(1)}, Camera at y=${this.camera.position.y.toFixed(1)} - ${mode}`);
+                const bombCount = this.bombManager.getBombs().length;
+                const enemyCount = this.enemyManager.getEnemies().length;
+                const bombTimer = this.bombManager.spawnTimer.toFixed(1);
+                const enemyTimer = this.enemyManager.spawnTimer.toFixed(1);
+                const nextSwitchAt = Math.ceil(this.score / 1000) * 1000;
+                console.log(`🎮 Player at y=${this.player.mesh.position.y.toFixed(1)}, Camera at y=${this.camera.position.y.toFixed(1)} - ${mode} (Bombs: ${bombCount}, Enemies: ${enemyCount}) [Bomb Timer: ${bombTimer}s, Enemy Timer: ${enemyTimer}s] Next switch at: ${nextSwitchAt}`);
             }
             this.frameCount = (this.frameCount || 0) + 1;
         }

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 export class EnemyShip {
-    constructor(x, y, type = 'basic') {
+    constructor(x, y, type = 'basic', difficulty = 1.0) {
         this.mesh = null;
         this.position = new THREE.Vector3(x, y, 0);
         this.velocity = new THREE.Vector3(0, 0, 0);
@@ -9,7 +9,8 @@ export class EnemyShip {
         this.type = type;
         this.health = this.getHealthForType(type);
         this.maxHealth = this.health;
-        this.speed = 2;
+        this.difficulty = difficulty;
+        this.speed = 4 + this.difficulty * 0.5; // Much faster enemies with difficulty scaling
         this.movePattern = this.getMovePattern(type);
         this.patternTimer = 0;
         this.isDestroyed = false;

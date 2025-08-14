@@ -5,7 +5,7 @@ export class EnemyManager {
     constructor() {
         this.enemies = [];
         this.spawnTimer = 0;
-        this.spawnInterval = 5.0; // Spawn enemy every 5 seconds
+        this.spawnInterval = 2.0; // Spawn enemy every 2 seconds
         this.minSpawnX = -8;
         this.maxSpawnX = 8;
         this.spawnY = -12; // Spawn enemies below screen
@@ -31,7 +31,9 @@ export class EnemyManager {
                 this.spawnTimer = 0;
                 
                 // Increase difficulty over time
-                this.spawnInterval = Math.max(2.0, 5.0 - this.difficulty * 0.2);
+                this.spawnInterval = Math.max(1.0, 2.0 - this.difficulty * 0.1);
+                
+                console.log(`👾 Enemy spawned! Total enemies: ${this.enemies.length}, Next spawn in: ${this.spawnInterval.toFixed(1)}s`);
             }
         }
         
@@ -66,7 +68,7 @@ export class EnemyManager {
     spawnEnemy(scene) {
         const x = this.minSpawnX + Math.random() * (this.maxSpawnX - this.minSpawnX);
         const type = this.getRandomEnemyType();
-        const enemy = new EnemyShip(x, this.spawnY, type);
+        const enemy = new EnemyShip(x, this.spawnY, type, this.difficulty);
         
         console.log(`👾 Enemy ${type} spawned at (${x.toFixed(1)}, ${this.spawnY})`);
         

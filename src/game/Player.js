@@ -264,7 +264,7 @@ export class Player {
         const laserMaterial = new THREE.MeshPhongMaterial({
             color: 0xffffff, // Pure white
             emissive: 0xffffff, // White glow
-            emissiveIntensity: 1.0, // Full intensity
+            emissiveIntensity: 2.0, // Much stronger intensity
             transparent: true,
             opacity: 1.0, // Fully opaque
             shininess: 200 // Very shiny

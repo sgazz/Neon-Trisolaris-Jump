@@ -117,6 +117,10 @@ export class Bomb {
         
         // Check if bomb is out of bounds (above screen)
         if (this.position.y > 20) {
+            // Get player position for debug
+            const playerY = window.gameInstance && window.gameInstance.game && window.gameInstance.game.player ? 
+                window.gameInstance.game.player.mesh.position.y : 0;
+            console.log(`💣 Bomb destroyed at y=${this.position.y.toFixed(1)} - out of bounds (Player at y=${playerY.toFixed(1)})`);
             this.destroy();
         }
     }
