@@ -7,8 +7,8 @@ export class Player {
         this.position = new THREE.Vector3(0, 0, 0);
         this.size = { width: 0.5, height: 0.5 };
         
-        this.jumpForce = 8;
-        this.gravity = -20;
+        this.jumpForce = 12; // Increased jump force
+        this.gravity = -25; // Slightly stronger gravity
         this.moveSpeed = 5;
         
         this.isOnGround = false;
@@ -122,6 +122,8 @@ export class Player {
             this.velocity.y = this.jumpForce;
             this.isOnGround = false;
             
+            console.log(`🦘 Jump! Force: ${this.jumpForce}, Velocity: ${this.velocity.y}`);
+            
             // Add jump effect
             this.addJumpEffect();
             
@@ -186,13 +188,13 @@ export class Player {
         
         // Debug collision detection
         if (this.frameCount % 60 === 0) {
-            console.log(`🔍 Checking collision: Player bottom=${playerBounds.bottom.toFixed(1)}, Platform top=${platformBounds.top.toFixed(1)}, velocity.y=${this.velocity.y.toFixed(1)}`);
+            console.log(`🔍 Checking collision: Player bottom=${playerBounds.bottom.toFixed(1)}, Platform top=${platformBounds.top.toFixed(1)}, velocity.y=${this.velocity.y.toFixed(1)}, distance=${(platformBounds.top - playerBounds.bottom).toFixed(1)}`);
         }
         
         // Check if player is falling and above platform
         if (this.velocity.y <= 0 && 
             playerBounds.bottom <= platformBounds.top &&
-            playerBounds.bottom >= platformBounds.top - 0.5 &&
+            playerBounds.bottom >= platformBounds.top - 0.8 && // Increased collision range
             playerBounds.left < platformBounds.right &&
             playerBounds.right > platformBounds.left) {
             
